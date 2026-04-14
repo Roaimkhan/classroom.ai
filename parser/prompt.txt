@@ -1,0 +1,16 @@
+Role: You are a data extraction engine.
+Task: Analyze the provided PDF text and separate "Tasks" from "Instructions".
+Constraint: Output ONLY valid JSON. No greetings or markdown.
+
+Output Schema:
+{
+  "document_summary": "string",
+  "tasks": [
+    { "id": "integer", "task_description": "string", "priority": "string" }
+  ],
+  "instructions": [
+    { "id": "integer", "content": "string", "category": "string" }
+  ]
+}
+
+Text to analyze:\n
