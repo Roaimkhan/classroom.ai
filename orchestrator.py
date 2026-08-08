@@ -41,10 +41,8 @@ def get_courses_ids():
 
 def main():
     fetcher = build_fetcher()
-
     fetcher.update_courses()
     registered_courses_id = get_courses_ids()
-
     ASSGINMENT_MATERIAL_DIR.mkdir(parents=True, exist_ok=True)
     for course_id in registered_courses_id:
         print(f"\n\n\n\nTHIS IS COURSE {course_id}")
@@ -64,8 +62,6 @@ def main():
                 print(text)
                 pprint(run_llm(text))
                 break
-
-                 
 
 if __name__ == "__main__":
     main()
