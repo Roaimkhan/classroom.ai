@@ -54,6 +54,7 @@ export default function App() {
         </View>
       ) : (
         <View style={styles.loginContainer}>
+          <Text style={styles.titleText}>Welcome Back</Text>
           <GoogleSignInButton />
         </View>
       )}
