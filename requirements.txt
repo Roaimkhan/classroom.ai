@@ -10,4 +10,5 @@ requests
 typing_extensions
 fastapi
 uvicorn
-sqlalchemey
+sqlalchemy
+psycopg2-binary

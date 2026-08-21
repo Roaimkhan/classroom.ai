@@ -1,16 +1,18 @@
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload
+from datetime import datetime
 from googleapiclient.discovery import build
 from gc_agent.fetcher.utils import CTime , retry_decorator
 from gc_agent.custom_errors import gc_error_mapper
 from gc_agent.dir import DATA_DIR 
 from gc_agent.Oauth.authentication_client import authenticate
+from datetime import datetime
 import io
 import asyncio
 import json
 from pprint import pprint
 from typing import  Any
-from pydantic import BaseModel, EmailStr, Field , TypeAdapter
+from pydantic import BaseModel, Field , TypeAdapter
 
 class Assignment(BaseModel):
     id: str
@@ -18,11 +20,11 @@ class Assignment(BaseModel):
     courseId: str
     description: str | None = None
     driveId: dict[str, Any] = Field(default_factory=dict)
+    dueDate: datetime | None = None
     materials: list[Any] = Field(default_factory=list)
-    dueDate: Any | None = None
 
 class ALLassignments(BaseModel):
-        assignments :list[Assignment]
+    assignments :list[Assignment]
 
 AssignmentListValidator = TypeAdapter(list[Assignment])
 
@@ -157,7 +159,7 @@ class gc_fetcher:
         # courseId = course["id"]
         assignments = self.clsrm_client.courses().courseWork().list(courseId=courseId).execute()
         assignments = assignments.get("courseWork", []) 
-        pprint(assignments)
+        # pprint(assignments)
         # "assignments" is basically list of all the assignments uploaded to that particular coure
         all_assignments = {}
         ctime = CTime
@@ -200,7 +202,6 @@ class gc_fetcher:
                     task = tg.create_task(self.get_assignments(courseId))
                     tasks.append(task)
 
-            print("=========================================")
         all_fetched = [
             assignment 
             for task in tasks 
@@ -211,8 +212,8 @@ class gc_fetcher:
             for assignment in assignment_list
         ]
         final_Assignments = ALLassignments(assignments=all_fetched)
-        for i in  final_Assignments.assignments:
-            print(f"{i}\n")
+        # for i in  final_Assignments.assignments:
+        #     print(f"{i}\n")
         return final_Assignments
 
 
@@ -254,7 +255,7 @@ class gc_fetcher:
         return file.getvalue()
 
 
-def build_fetcher():
+def build_fetcher()->gc_fetcher:
     creds = authenticate()
     clsrm_client = build("classroom", "v1", credentials=creds)
     dr_client = build("drive", "v3", credentials=creds)
