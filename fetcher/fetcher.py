@@ -11,8 +11,8 @@ import io
 import asyncio
 import json
 from pprint import pprint
-from typing import  Any
-from pydantic import BaseModel, Field , TypeAdapter
+from typing import  Any, Literal
+from pydantic import BaseModel, Field
 
 class Assignment(BaseModel):
     id: str
@@ -22,11 +22,10 @@ class Assignment(BaseModel):
     driveId: dict[str, Any] = Field(default_factory=dict)
     dueDate: datetime | None = None
     materials: list[Any] = Field(default_factory=list)
+    due_date_status: Literal["Pending", "Due", "WithoutDueDate"]
 
 class ALLassignments(BaseModel):
     assignments :list[Assignment]
-
-AssignmentListValidator = TypeAdapter(list[Assignment])
 
 class gc_fetcher:
     """
@@ -115,6 +114,7 @@ class gc_fetcher:
                             description=single_assgnmt.get("description"),
                             driveId=single_assgnmt.get("driveId", {}),
                             materials=materials,
+                            due_date_status=single_assgnmt.get("due_date_status")
                             ))
         else:
             assgnmnt_list.append(Assignment(
@@ -125,6 +125,7 @@ class gc_fetcher:
                             driveId=single_assgnmt.get("driveId", {}),
                             materials=materials,
                             dueDate=single_assgnmt.get("dueDate",{}),
+                            due_date_status=single_assgnmt.get("due_date_status")
             ))
             
     @retry_decorator(retry_range = 3)
@@ -156,11 +157,8 @@ class gc_fetcher:
                                     "link": "https://drive...."}],
                 }
         """
-        # courseId = course["id"]
         assignments = self.clsrm_client.courses().courseWork().list(courseId=courseId).execute()
         assignments = assignments.get("courseWork", []) 
-        # pprint(assignments)
-        # "assignments" is basically list of all the assignments uploaded to that particular coure
         all_assignments = {}
         ctime = CTime
         for single_assgnmt in assignments:
@@ -168,6 +166,7 @@ class gc_fetcher:
             materials = self._clean_assignmt_provided(single_assgnmt)
 
             if not single_assgnmt.get("dueDate",[]):
+                single_assgnmt["due_date_status"] = "WithoutDueDate"
                 if not all_assignments.get("without_duedate",[]):
                     all_assignments["without_duedate"] = []
                 self._make_final_assignmt(all_assignments.get("without_duedate",[]),single_assgnmt,materials,dueDate = False)
@@ -176,12 +175,14 @@ class gc_fetcher:
             due_time = ctime.format_time(single_assgnmt.get("dueDate",{}),single_assgnmt.get("dueTime",{})) 
             if due_time < ctime.current_time():
                 single_assgnmt["dueDate"] = due_time
+                single_assgnmt["due_date_status"] = "Due"
                 if not all_assignments.get("due_assignments",[]):
                     all_assignments["due_assignments"] = []
                 self._make_final_assignmt(all_assignments.get("due_assignments",[]),single_assgnmt,materials)
                 
             elif due_time > ctime.current_time():
                 single_assgnmt["dueDate"] = due_time
+                single_assgnmt["due_date_status"] = "Pending"
                 if not all_assignments.get("not_due_assignments",[]):
                     all_assignments["not_due_assignments"] = []
                 self._make_final_assignmt(all_assignments.get("not_due_assignments",[]),single_assgnmt,materials)
@@ -212,8 +213,6 @@ class gc_fetcher:
             for assignment in assignment_list
         ]
         final_Assignments = ALLassignments(assignments=all_fetched)
-        # for i in  final_Assignments.assignments:
-        #     print(f"{i}\n")
         return final_Assignments
 
 
