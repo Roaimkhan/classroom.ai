@@ -19,9 +19,8 @@ class Assignment(BaseModel):
     title: str
     courseId: str
     description: str | None = None
-    driveId: dict[str, Any] = Field(default_factory=dict)
     dueDate: datetime | None = None
-    materials: list[Any] = Field(default_factory=list)
+    materials: list[dict[str, Any]] = Field(default_factory=list)
     due_date_status: Literal["Pending", "Due", "WithoutDueDate"]
 
 class ALLassignments(BaseModel):
@@ -85,7 +84,7 @@ class gc_fetcher:
         with open(DATA_DIR/"registered_courses.json","w") as file:
             json.dump(cl_courses,file)
 
-    def _clean_assignmt_provided(self,asignmt:dict)->list[dict[str,Any]]:
+    def _extract_materials(self,asignmt:dict)->list[dict[str,Any]]:
         _materials = []
         for j in asignmt.get("materials", []):
             if (next(iter(j))=="driveFile"):
@@ -106,6 +105,7 @@ class gc_fetcher:
                             materials:list,
                             dueDate = True,
                             ) -> None:
+        print(f"DEBUG: materials type is {type(materials)}")
         if not dueDate:
             assgnmnt_list.append(Assignment(
                             id=single_assgnmt.get("id"),
@@ -163,7 +163,7 @@ class gc_fetcher:
         ctime = CTime
         for single_assgnmt in assignments:
             
-            materials = self._clean_assignmt_provided(single_assgnmt)
+            materials = self._extract_materials(single_assgnmt)
 
             if not single_assgnmt.get("dueDate",[]):
                 single_assgnmt["due_date_status"] = "WithoutDueDate"
