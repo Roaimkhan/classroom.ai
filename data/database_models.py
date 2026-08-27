@@ -1,13 +1,20 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
-from sqlalchemy import JSON
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import JSON, Enum
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Literal
 
-engine = create_engine("postgresql+psycopg2://postgres:mysecretpassword@localhost:5433/classroom_db")
+engine = create_async_engine("postgresql+asyncpg://postgres:mysecretpassword@localhost:5433/classroom_db",echo=True)
+
 
 class Base(DeclarativeBase):
     pass
+
+async def init_db():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
 
 class AssignmentDB(Base):
     __tablename__= "assignments"
@@ -15,10 +22,15 @@ class AssignmentDB(Base):
     title: Mapped[str] = mapped_column()
     courseId: Mapped[str] = mapped_column()
     description: Mapped[Optional[str]] = mapped_column(nullable=True)
-    driveId: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     materials: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
     dueDate: Mapped[Optional[datetime]] = mapped_column(nullable=True)
+    due_date_status:Mapped[Literal["Pending", "Due", "WithoutDueDate"]] = mapped_column()
 
-AssignmentDB.metadata.create_all(bind=engine)
-SessionLocal = sessionmaker(bind=engine)
-session = SessionLocal()
+
+AsyncSessionLocal = async_sessionmaker(
+    engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+
+)
+session = AsyncSessionLocal()
