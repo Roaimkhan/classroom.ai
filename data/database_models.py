@@ -14,13 +14,12 @@ async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-
-
 class AssignmentDB(Base):
     __tablename__= "assignments"
     id: Mapped[str] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column()
     courseId: Mapped[str] = mapped_column()
+    coursename:Mapped[str] = mapped_column()
     description: Mapped[Optional[str]] = mapped_column(nullable=True)
     materials: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
     dueDate: Mapped[Optional[datetime]] = mapped_column(nullable=True)
