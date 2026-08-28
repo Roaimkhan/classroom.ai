@@ -1,30 +1,17 @@
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload
 from datetime import datetime
-from googleapiclient.discovery import build
+from gc_agent.models.fetcher_models import Course, Assignment, ALLassignments, ALLcourses
 from gc_agent.fetcher.utils import CTime , retry_decorator
 from gc_agent.custom_errors import gc_error_mapper
 from gc_agent.dir import DATA_DIR 
-from gc_agent.Oauth.authentication_client import authenticate
 from datetime import datetime
 import io
 import asyncio
 import json
 from pprint import pprint
-from typing import  Any, Literal
-from pydantic import BaseModel, Field
+from typing import Any
 
-class Assignment(BaseModel):
-    id: str
-    title: str
-    courseId: str
-    description: str | None = None
-    dueDate: datetime | None = None
-    materials: list[dict[str, Any]] = Field(default_factory=list)
-    due_date_status: Literal["Pending", "Due", "WithoutDueDate"]
-
-class ALLassignments(BaseModel):
-    assignments :list[Assignment]
 
 class gc_fetcher:
     """
@@ -56,7 +43,7 @@ class gc_fetcher:
         self.dr_client = dr_client
 
     @retry_decorator(retry_range = 3)
-    def update_courses(self)->None:
+    async def update_courses(self)->ALLcourses:
         """
             Description:
                 This function generates a json file containing a list of all registered courses' of the user with their courseIds and names
@@ -70,19 +57,17 @@ class gc_fetcher:
             error_code = e.resp.status
             raise gc_error_mapper(error_code)
 
-        courses = results.get("courses", [])
-        if not courses:
+        _courses = results.get("courses", [])
+        if not _courses:
             print("No courses found.")
 
-        cl_courses = []
-        for course in courses:  
-            cl_courses.append({
-                "courseId" : course["id"],
-                "name" : course["name"]
-                })
+        processed_courses = []
+        for course in _courses:  
+            temp = Course(**course)
+            processed_courses.append(temp)
         
-        with open(DATA_DIR/"registered_courses.json","w") as file:
-            json.dump(cl_courses,file)
+        return ALLcourses(courses=processed_courses)
+
 
     def _extract_materials(self,asignmt:dict)->list[dict[str,Any]]:
         _materials = []
@@ -99,18 +84,26 @@ class gc_fetcher:
                     
         return _materials
     
-    def _make_final_assignmt(self,
+    async def _make_final_assignmt(self,
                             assgnmnt_list:list,
                             single_assgnmt:dict,
                             materials:list,
                             dueDate = True,
                             ) -> None:
         print(f"DEBUG: materials type is {type(materials)}")
+        # Import at the point of use to keep the fetcher independent of the
+        # database write service during application startup.
+        from gc_agent.data.database_ops import getCourseNameFrmDb
+
+        courseId = single_assgnmt.get("courseId")
+        coursename = await getCourseNameFrmDb(courseId)
+        print(f"===================================={coursename}=============================================================================")
         if not dueDate:
             assgnmnt_list.append(Assignment(
                             id=single_assgnmt.get("id"),
                             title=single_assgnmt.get("title"),
-                            courseId=single_assgnmt.get("courseId"),
+                            courseId=courseId,
+                            coursename=coursename,
                             description=single_assgnmt.get("description"),
                             driveId=single_assgnmt.get("driveId", {}),
                             materials=materials,
@@ -120,7 +113,8 @@ class gc_fetcher:
             assgnmnt_list.append(Assignment(
                             id=single_assgnmt.get("id"),
                             title=single_assgnmt.get("title"),
-                            courseId=single_assgnmt.get("courseId"),
+                            courseId=courseId,
+                            coursename=coursename,
                             description=single_assgnmt.get("description"),
                             driveId=single_assgnmt.get("driveId", {}),
                             materials=materials,
@@ -169,23 +163,23 @@ class gc_fetcher:
                 single_assgnmt["due_date_status"] = "WithoutDueDate"
                 if not all_assignments.get("without_duedate",[]):
                     all_assignments["without_duedate"] = []
-                self._make_final_assignmt(all_assignments.get("without_duedate",[]),single_assgnmt,materials,dueDate = False)
+                await self._make_final_assignmt(all_assignments.get("without_duedate",[]),single_assgnmt,materials,dueDate = False)
                 continue
 
             due_time = ctime.format_time(single_assgnmt.get("dueDate",{}),single_assgnmt.get("dueTime",{})) 
-            if due_time < ctime.current_time():
+            if due_time <= ctime.current_time():
                 single_assgnmt["dueDate"] = due_time
                 single_assgnmt["due_date_status"] = "Due"
                 if not all_assignments.get("due_assignments",[]):
                     all_assignments["due_assignments"] = []
-                self._make_final_assignmt(all_assignments.get("due_assignments",[]),single_assgnmt,materials)
+                await self._make_final_assignmt(all_assignments.get("due_assignments",[]),single_assgnmt,materials)
                 
             elif due_time > ctime.current_time():
                 single_assgnmt["dueDate"] = due_time
                 single_assgnmt["due_date_status"] = "Pending"
                 if not all_assignments.get("not_due_assignments",[]):
                     all_assignments["not_due_assignments"] = []
-                self._make_final_assignmt(all_assignments.get("not_due_assignments",[]),single_assgnmt,materials)
+                await self._make_final_assignmt(all_assignments.get("not_due_assignments",[]),single_assgnmt,materials)
         
         return all_assignments
     
@@ -252,16 +246,3 @@ class gc_fetcher:
             raise error
         
         return file.getvalue()
-
-
-def build_fetcher()->gc_fetcher:
-    creds = authenticate()
-    clsrm_client = build("classroom", "v1", credentials=creds)
-    dr_client = build("drive", "v3", credentials=creds)
-    fetcher = gc_fetcher(clsrm_client,dr_client)
-    return fetcher
-
-if __name__ == "__main__":
-    fetcher = build_fetcher()
-    fetcher.update_courses()
-    pprint(fetcher.get_assignments("850051495510"))
