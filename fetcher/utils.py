@@ -1,7 +1,9 @@
 from datetime import datetime
 from gc_agent.custom_errors import GCRConnectionError, GCRServerError, GCRRateLimitError
+
 import fitz
 import time
+
 class CTime():
     @staticmethod
     def current_time():
@@ -57,3 +59,5 @@ def retry_decorator(retry_range=3):
 
         return wrapper
     return decorator
+
+
