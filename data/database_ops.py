@@ -76,7 +76,7 @@ async def getCourseNameFrmDb(courseid:str):
 
 async def getCoursesFrmDb():
     async with AsyncSessionLocal() as db:
-            stmt = select(CourseDB)
+            stmt = select(CourseDB).where(CourseDB.course_state == "ACTIVE")
             res =  await db.scalars(stmt)
             return res.all()
     
