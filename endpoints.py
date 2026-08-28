@@ -1,7 +1,7 @@
 from gc_agent.dir import DATA_DIR
-from gc_agent.fetcher.fetcher import build_fetcher
+from gc_agent.fetcher.fetcher_factory import build_fetcher
 from gc_agent.data.database_models import engine, init_db
-from gc_agent.data.database_ops import updateAssgnDb, getPendingAssgnCountFrmDb, _writetodb, getPendingAssgnFrmDb
+from gc_agent.data.database_ops import updateAssgnDb, getPendingAssgnCountFrmDb, _writeAssgntodb, getPendingAssgnFrmDb, updateCoursesDb, getCoursesFrmDb
 import asyncio
 import json
 from pprint import pprint
@@ -43,8 +43,19 @@ async def fetchPendingAssignments():
     print(assgn)
     return {"all_pending_assgn": assgn}
 
+@app.get("/refersh")
+async def refresh():
+    await updateCoursesDb()
+    courses = await getCoursesFrmDb()
+    print(f"==================={courses}")
+    await updateAssgnDb()
+    assgn = await getPendingAssgnFrmDb()
+
+    return {"all_pending_assgn": assgn,"registered_courses":courses}
+
+
 if __name__ == "__main__":
     fetcher = build_fetcher()
     assignments = asyncio.run(fetcher.fetch_all_Assignments())
     # pprint(assignments.model_dump())
-    asyncio.run(_writetodb(assignments))
+    asyncio.run(_writeAssgntodb(assignments))
