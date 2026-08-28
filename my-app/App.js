@@ -1,9 +1,21 @@
 import React from 'react';
-import Dashboard from './screens/dashboard';
+import AgentDashboard from './screens/dashboard';
+import AssignmentCard from './components/assignmentcards';
+import { StyleSheet, View } from 'react-native';
 
 export default function App() {
-  return <Dashboard />;
+    return (<View style={styles.container}>
+        <AgentDashboard />
+        </View>
+    );
 }
+
+const styles = StyleSheet.create({
+  container: {
+        flex: 1,
+        backgroundColor: '#f4f1e9',
+  },
+});
 
 /*
 import React, { useState, useEffect } from 'react';
