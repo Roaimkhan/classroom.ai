@@ -24,8 +24,16 @@ async def updateAssgnDb()->None:
 async def getPendingAssgnCountFrmDb():
     # current_user = get_current_user(token)
     async with AsyncSessionLocal() as db:
-        stmt = select(func.count(AssignmentDB.id)).where(AssignmentDB.due_date_status == "WithoutDueDate")
+        stmt = select(func.count(AssignmentDB.id)).where(AssignmentDB.due_date_status == "Pending")
         return await db.scalar(stmt) or 0
+
+
+async def getPendingAssgnFrmDb():
+    async with AsyncSessionLocal() as db:
+        stmt = select(AssignmentDB).where(AssignmentDB.due_date_status == "WithoutDueDate")
+        result_scalars = await db.scalars(stmt)
+        results = result_scalars.all()
+        return results
 
 async def _writetodb(assignment:ALLassignments)->None:
     try:
