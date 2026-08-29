@@ -1,11 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AgentDashboard from './screens/dashboard';
 import AssignmentCard from './components/assignmentcards';
+// import AssignmentView from './components/AssignmentView';
+
+import Footer from './components/footer';
 import { StyleSheet, View } from 'react-native';
 
+
+
 export default function App() {
+    const [activeTab, setActiveTab] = useState('assignments');
+
     return (<View style={styles.container}>
-        <AgentDashboard />
+        <AgentDashboard activeTab={activeTab} />
+        <Footer activeTab={activeTab} setActiveTab={setActiveTab} />
+        {/* <AssignmentDetailModal/> */}
         </View>
     );
 }
@@ -13,7 +22,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
         flex: 1,
-        backgroundColor: '#f4f1e9',
+        backgroundColor: '#030303', 
   },
 });
 

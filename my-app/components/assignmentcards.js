@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-
 export default function AssignmentCard({ 
     subject, 
     dueDate, 
@@ -8,7 +7,7 @@ export default function AssignmentCard({
     description, 
     status, 
     onPressAssignment 
-}) {
+}) {    
     return (
         <View style={styles.card}>
             {/* Left Accent Stripe (Matches the orange accent bar on the left edge) */}
@@ -29,8 +28,6 @@ export default function AssignmentCard({
 
                 {/* Bottom Row: Status Tag & Action Button */}
                 <View style={styles.bottomRow}>
-                    <Text style={styles.statusText}></Text>
-
                     <TouchableOpacity 
                         style={styles.button} 
                         onPress={onPressAssignment}
