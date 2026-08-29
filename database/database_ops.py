@@ -1,26 +1,26 @@
-from gc_agent.data.database_models import CourseDB, AssignmentDB, AsyncSessionLocal
+from gc_agent.database.database_models import CourseDB, AssignmentDB, AsyncSessionLocal
 from gc_agent.models.fetcher_models import ALLassignments, ALLcourses
-from gc_agent.fetcher.fetcher_factory import build_fetcher
 from sqlalchemy import select, func
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 def get_current_user():
     ...
 
-
 # WRITING DATA TO DATABASE
 
 
 async def updateAssgnDb()->None:
+    from gc_agent.fetcher.fetcher_factory import build_fetcher
     fetcher = build_fetcher()
     all_assgn = await fetcher.fetch_all_Assignments()
     await _writeAssgntodb(all_assgn)
 
 
 async def updateCoursesDb():
-     fetcher = build_fetcher()
-     all_courses = await fetcher.update_courses()
-     await _writeCoursestodb(all_courses)
+    from gc_agent.fetcher.fetcher_factory import build_fetcher
+    fetcher = build_fetcher()
+    all_courses = await fetcher.update_courses()
+    await _writeCoursestodb(all_courses)
 
 
 async def _writeAssgntodb(assignment:ALLassignments)->None:
@@ -84,7 +84,14 @@ async def getCoursesFrmDb():
             stmt = select(CourseDB).where(CourseDB.course_state == "ACTIVE")
             res =  await db.scalars(stmt)
             return res.all()
+
+async def getCourselist():
+    async with AsyncSessionLocal() as db:
+        stmt = select(CourseDB.id)
+        res = await db.scalars(stmt)
+        return res.all()
+
     
 if __name__ == "__main__":
     import asyncio
-    asyncio.run(getAssgnFrmDbThruId("857029995043"))
+    asyncio.run(getCourselist())

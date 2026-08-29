@@ -1,7 +1,8 @@
 from gc_agent.dir import DATA_DIR
+# from gc_agent.agent.AssignmentDispatcher import AssignmentDispatcher
 from gc_agent.fetcher.fetcher_factory import build_fetcher
-from gc_agent.data.database_models import engine, init_db
-from gc_agent.data.database_ops import updateAssgnDb, getPendingAssgnCountFrmDb, _writeAssgntodb, getPendingAssgnFrmDb, updateCoursesDb, getCoursesFrmDb, getAssgnFrmDbThruId
+from gc_agent.database.database_models import engine, init_db
+from gc_agent.database.database_ops import updateAssgnDb, getPendingAssgnCountFrmDb, _writeAssgntodb, getPendingAssgnFrmDb, updateCoursesDb, getCoursesFrmDb, getAssgnFrmDbThruId
 import asyncio
 import json
 from pprint import pprint
@@ -52,9 +53,8 @@ async def refresh():
 
 @app.post("/assignments/{assignment_id}/complete")
 async def completeAssignment(assignment_id:str):
-    
-
-    assgn = await getAssgnFrmDbThruId(assignment_id)
+    assgn = await AssignmentDispatcher(assignment_id)
+    # assgn = await getAssgnFrmDbThruId(assignment_id)
     return {"assignment":assgn}
 
 

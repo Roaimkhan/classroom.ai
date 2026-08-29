@@ -1,6 +1,7 @@
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload
 from datetime import datetime
+from gc_agent.database.database_ops import getCourselist
 from gc_agent.models.fetcher_models import Course, Assignment, ALLassignments, ALLcourses
 from gc_agent.fetcher.utils import CTime , retry_decorator
 from gc_agent.custom_errors import gc_error_mapper
@@ -93,7 +94,7 @@ class gc_fetcher:
         print(f"DEBUG: materials type is {type(materials)}")
         # Import at the point of use to keep the fetcher independent of the
         # database write service during application startup.
-        from gc_agent.data.database_ops import getCourseNameFrmDb
+        from gc_agent.database.database_ops import getCourseNameFrmDb
 
         courseId = single_assgnmt.get("courseId")
         coursename = await getCourseNameFrmDb(courseId)
@@ -184,18 +185,15 @@ class gc_fetcher:
         return all_assignments
     
     async def fetch_all_Assignments(self)-> ALLassignments:
-        path = DATA_DIR / "registered_courses.json"
-        with open(path) as file :
-            data = json.load(file)
-            tasks = []
-            async with asyncio.TaskGroup() as tg:
-                for course in data:
-                    courseId = course.get("courseId","")
-                    if courseId == "":
-                        print(f"course id not found for course {course.name}")
-                        continue
-                    task = tg.create_task(self.get_assignments(courseId))
-                    tasks.append(task)
+        data = await getCourselist()
+        tasks = []
+        async with asyncio.TaskGroup() as tg:
+            for courseId in data:
+                if courseId == "":
+                    print(f"course id not found")
+                    continue
+                task = tg.create_task(self.get_assignments(courseId))
+                tasks.append(task)
 
         all_fetched = [
             assignment 
