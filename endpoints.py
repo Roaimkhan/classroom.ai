@@ -1,7 +1,7 @@
 from gc_agent.dir import DATA_DIR
 from gc_agent.fetcher.fetcher_factory import build_fetcher
 from gc_agent.data.database_models import engine, init_db
-from gc_agent.data.database_ops import updateAssgnDb, getPendingAssgnCountFrmDb, _writeAssgntodb, getPendingAssgnFrmDb, updateCoursesDb, getCoursesFrmDb
+from gc_agent.data.database_ops import updateAssgnDb, getPendingAssgnCountFrmDb, _writeAssgntodb, getPendingAssgnFrmDb, updateCoursesDb, getCoursesFrmDb, getAssgnFrmDbThruId
 import asyncio
 import json
 from pprint import pprint
@@ -11,7 +11,6 @@ path = DATA_DIR / "registered_courses.json"
 
 
 from fastapi.middleware.cors import CORSMiddleware
-
 
 
 @asynccontextmanager
@@ -43,15 +42,21 @@ async def fetchPendingAssignments():
     print(assgn)
     return {"all_pending_assgn": assgn}
 
-@app.get("/refersh")
+@app.get("/refresh")
 async def refresh():
     await updateCoursesDb()
     courses = await getCoursesFrmDb()
-    print(f"==================={courses}")
     await updateAssgnDb()
     assgn = await getPendingAssgnFrmDb()
-
     return {"all_pending_assgn": assgn,"registered_courses":courses}
+
+@app.post("/assignments/{assignment_id}/complete")
+async def completeAssignment(assignment_id:str):
+    
+
+    assgn = await getAssgnFrmDbThruId(assignment_id)
+    return {"assignment":assgn}
+
 
 
 if __name__ == "__main__":
