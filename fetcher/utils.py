@@ -1,7 +1,6 @@
 from datetime import datetime
 from gc_agent.custom_errors import GCRConnectionError, GCRServerError, GCRRateLimitError
 
-import fitz
 import time
 
 class CTime():
@@ -28,14 +27,7 @@ class CTime():
         return date_string
 
 
-def pdf_bytes_to_text(pdf_bytes):
-    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
 
-    text = ""
-    for page in doc:
-        text += page.get_text()
-    
-    return text
 
 def retry_decorator(retry_range=3):
     def decorator(func):

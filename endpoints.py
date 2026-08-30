@@ -57,8 +57,6 @@ async def completeAssignment(assignment_id:str):
     # assgn = await getAssgnFrmDbThruId(assignment_id)
     return {"assignment":assgn}
 
-
-
 if __name__ == "__main__":
     fetcher = build_fetcher()
     assignments = asyncio.run(fetcher.fetch_all_Assignments())
