@@ -10,8 +10,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
-
 model = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
     temperature=0.7,
@@ -36,7 +34,6 @@ class ExtractedTask(BaseModel):
     instructions: str = Field(
         description="Overarching instructions, global constraints, formatting rules, or submission guidelines that apply to the entire assignment."
     )
-    
 
 class Extraction(BaseModel):
     task: ExtractedTask = Field(
@@ -60,18 +57,13 @@ class State(TypedDict):
     completed_task:str
     
 def extract_task(state: State) -> dict[str, Any]:
-    # `State` is a TypedDict, so LangGraph supplies it as a regular dict at
-    # runtime rather than an object with attributes.
     task_extraction_message = [
     SystemMessage(content = SYS_TASK_EXTRACTION_PROMPT),
     HumanMessage(content = HUMAN_TASK_EXTRACTION_PROMPT.format(**state))
     ]
-
     llm = model.with_structured_output(Extraction)
     extraction = llm.invoke(task_extraction_message)
-
     return {"task":extraction.task, "upload_format":extraction.format, "global_inst":extraction.globalinstructions} 
-
 
 def complete_task(state: State) -> dict[str, ExtractedTask]:
     task_extraction_message = [
@@ -82,7 +74,6 @@ def complete_task(state: State) -> dict[str, ExtractedTask]:
     completed_task = model.invoke(task_extraction_message)
     print(completed_task)
     return {"completed_task":completed_task.content} 
-
       
 builder = StateGraph(State)
 builder.add_node("extractor", extract_task)

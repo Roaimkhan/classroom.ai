@@ -33,7 +33,16 @@ async def _writeAssgntodb(assignment:ALLassignments)->None:
         async with AsyncSessionLocal() as db:
             async with db.begin():
                 stmt = pg_insert(AssignmentDB).values(payload)
-                stmt = stmt.on_conflict_do_nothing(index_elements=["id"])
+                update_dict = {
+                    "title": stmt.excluded.title,
+                    "courseId":stmt.excluded.courseId,
+                    "coursename": stmt.excluded.coursename,
+                    "description": stmt.excluded.description,
+                    "materials": stmt.excluded.materials,
+                    "dueDate": stmt.excluded.dueDate,
+                    "due_date_status": stmt.excluded.due_date_status,
+                }
+                stmt = stmt.on_conflict_do_update(index_elements=["id"],set_=update_dict)
                 await db.execute(stmt)
 
     except Exception as e:
@@ -57,7 +66,7 @@ async def _writeCoursestodb(courses:ALLcourses)->None:
 
 async def getPendingAssgnFrmDb():
     async with AsyncSessionLocal() as db:
-        stmt = select(AssignmentDB).where(AssignmentDB.due_date_status == "WithoutDueDate")
+        stmt = select(AssignmentDB).where(AssignmentDB.due_date_status == "Pending")
         result_scalars = await db.scalars(stmt)
         results = result_scalars.all()
         return results

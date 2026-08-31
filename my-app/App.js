@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import AgentDashboard from './screens/dashboard';
 import AssignmentCard from './components/assignmentcards';
-// import AssignmentView from './components/AssignmentView';
 
 import Footer from './components/footer';
 import { StyleSheet, View } from 'react-native';
@@ -14,7 +13,6 @@ export default function App() {
     return (<View style={styles.container}>
         <AgentDashboard activeTab={activeTab} />
         <Footer activeTab={activeTab} setActiveTab={setActiveTab} />
-        {/* <AssignmentDetailModal/> */}
         </View>
     );
 }

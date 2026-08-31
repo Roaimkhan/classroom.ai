@@ -5,9 +5,11 @@ import {
   View, 
   ScrollView, 
   TouchableOpacity, 
-  ActivityIndicator 
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { FontAwesome6 } from '@expo/vector-icons';
+import Skeleton from './Skeleton';
 
 export default function CourseView({ 
   courses = [], 
@@ -18,11 +20,7 @@ export default function CourseView({
     <View style={styles.container}>
       {/* Metric Card */}
       <View style={styles.metricCard}>
-        <TouchableOpacity 
-          style={styles.courseCountBanner}
-          onPress={onRefresh}
-          activeOpacity={0.8}
-        >
+        <View style={styles.courseCountBanner}>
           {loading ? (
             <ActivityIndicator size="large" color="#ffffff" />
           ) : (
@@ -30,12 +28,12 @@ export default function CourseView({
               {courses.length}
             </Text>
           )}
-        </TouchableOpacity>
+        </View>
 
         <View style={styles.metricTextContainer}>
           <Text style={styles.metricLabel}>Active</Text>
           <Text style={styles.metricSubLabel}>Enrolled Courses</Text>
-          <Text style={styles.tapPrompt}>Tap box to sync 🔄</Text>
+          <Text style={styles.tapPrompt}>Pull down to refresh</Text>
         </View>
       </View>
 
@@ -43,10 +41,33 @@ export default function CourseView({
       <Text style={styles.sectionTitle}>Your Courses</Text>
 
       {/* Courses List */}
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {courses.length === 0 && !loading ? (
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={onRefresh}
+            tintColor="#FFFFFF"
+            colors={["#FFFFFF"]}
+            progressBackgroundColor="#10B981"
+          />
+        }
+      >
+        {loading ? (
+          Array.from({ length: 4 }, (_, index) => (
+            <View key={`course-skeleton-${index}`} style={styles.courseSkeletonCard}>
+              <View style={styles.courseSkeletonHeader}>
+                <Skeleton style={styles.courseSkeletonIcon} />
+                <Skeleton style={styles.courseSkeletonCode} />
+              </View>
+              <Skeleton style={styles.courseSkeletonTitle} />
+              <Skeleton style={styles.courseSkeletonInstructor} />
+            </View>
+          ))
+        ) : courses.length === 0 ? (
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyText}>No courses found. Tap above to refresh!</Text>
+            <Text style={styles.emptyText}>No courses found. Pull down to refresh.</Text>
           </View>
         ) : (
           courses.map((course, index) => (
@@ -146,6 +167,38 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  courseSkeletonCard: {
+    height: 116,
+    backgroundColor: '#1E293B',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  courseSkeletonHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  courseSkeletonIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+  },
+  courseSkeletonCode: {
+    width: 58,
+    height: 12,
+  },
+  courseSkeletonTitle: {
+    width: '65%',
+    height: 18,
+    marginBottom: 9,
+  },
+  courseSkeletonInstructor: {
+    width: '42%',
+    height: 13,
   },
   cardHeader: {
     flexDirection: 'row',

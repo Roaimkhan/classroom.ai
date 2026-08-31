@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, Text, View, Alert } from 'react-native';
 import AssignmentView from '../components/AssignmentScroll';
 import CourseView from '../components/courseview';
+import AssignmentDetailModal from '../components/AssignmentView'; // Import detail view modal
 
 const API_TIMEOUT_MS = 10000;
 
@@ -10,6 +11,21 @@ export default function AgentDashboard({ activeTab }) {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Modal State
+  const [selectedAssignment, setSelectedAssignment] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  // Handlers for opening/closing the assignment modal
+  const handleOpenAssignment = useCallback((assignment) => {
+    setSelectedAssignment(assignment);
+    setModalVisible(true);
+  }, []);
+
+  const handleCloseAssignment = useCallback(() => {
+    setModalVisible(false);
+    setSelectedAssignment(null);
+  }, []);
 
   // Sanitizers to prevent runtime type crashes
   const sanitizeAssignments = useCallback((rawData) => {
@@ -111,6 +127,7 @@ export default function AgentDashboard({ activeTab }) {
           loading={loading}
           error={error}
           onRefresh={fetchDashboardData} // Manual trigger only via user tap
+          onSelectAssignment={handleOpenAssignment} // Passed down to trigger modal open
         />
       ) : (
         <CourseView 
@@ -120,6 +137,13 @@ export default function AgentDashboard({ activeTab }) {
           onRefresh={fetchDashboardData} // Manual trigger only via user tap
         />
       )}
+
+      {/* Dynamic Slide-Up Modal */}
+      <AssignmentDetailModal 
+        visible={modalVisible}
+        onClose={handleCloseAssignment}
+        assignment={selectedAssignment}
+      />
     </View>
   );
 }

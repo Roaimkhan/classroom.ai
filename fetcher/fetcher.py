@@ -160,27 +160,28 @@ class gc_fetcher:
             
             materials = self._extract_materials(single_assgnmt)
 
-            if not single_assgnmt.get("dueDate",[]):
+            if not single_assgnmt.get("dueDate"):
+                single_assgnmt["dueDate"] = None
                 single_assgnmt["due_date_status"] = "WithoutDueDate"
                 if not all_assignments.get("without_duedate",[]):
-                    all_assignments["without_duedate"] = []
-                await self._make_final_assignmt(all_assignments.get("without_duedate",[]),single_assgnmt,materials,dueDate = False)
+                    all_assignments.setdefault("without_duedate",[])
+                await self._make_final_assignmt(all_assignments.get("without_duedate"),single_assgnmt,materials,dueDate = False)
                 continue
 
             due_time = ctime.format_time(single_assgnmt.get("dueDate",{}),single_assgnmt.get("dueTime",{})) 
+            single_assgnmt["dueDate"] = due_time
+
             if due_time <= ctime.current_time():
-                single_assgnmt["dueDate"] = due_time
+                print(f"==================due_time <= ran================================{due_time}and {ctime.current_time()}")
                 single_assgnmt["due_date_status"] = "Due"
-                if not all_assignments.get("due_assignments",[]):
-                    all_assignments["due_assignments"] = []
-                await self._make_final_assignmt(all_assignments.get("due_assignments",[]),single_assgnmt,materials)
+                target_list = all_assignments.setdefault("due_assignments", [])
                 
             elif due_time > ctime.current_time():
-                single_assgnmt["dueDate"] = due_time
+                print(f"==================due_time > ran================================{due_time}and {ctime.current_time()}")
                 single_assgnmt["due_date_status"] = "Pending"
-                if not all_assignments.get("not_due_assignments",[]):
-                    all_assignments["not_due_assignments"] = []
-                await self._make_final_assignmt(all_assignments.get("not_due_assignments",[]),single_assgnmt,materials)
+                target_list = all_assignments.setdefault("not_due_assignments", [])
+
+            await self._make_final_assignmt(target_list,single_assgnmt,materials)
         
         return all_assignments
     

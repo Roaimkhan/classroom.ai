@@ -7,6 +7,7 @@ import asyncio
 
 async def AssignmentDispatcher(id:str):
     # GET RELEVANT MATERIALS
+    
     assignment = await getAssgnFrmDbThruId(id)
     if not assignment.materials:
         print("no attachments found for this assignment")
@@ -23,6 +24,8 @@ async def AssignmentDispatcher(id:str):
 
     
     # PARSE THEM FOR THE AGENT
+    
+
     parsed_files:list[str] = [pdf_bytes_to_text(file) for file in  downloaded_files]
     print(f"""
             FILES IN TEXT :{parsed_files[0]}
@@ -44,7 +47,9 @@ async def AssignmentDispatcher(id:str):
         "pdf_text":parsed_files
     }
 
-    agent.invoke(assignment)
+    result = agent.invoke(assignment)
+    return result.completed_task
+
 
 if __name__ == "__main__":
     asyncio.run(AssignmentDispatcher("857029995043"))
