@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, Alert } from 'react-native';
 import AssignmentView from '../components/AssignmentScroll';
 import CourseView from '../components/courseview';
 import AssignmentDetailModal from '../components/AssignmentView'; // Import detail view modal
-
+import { supabase } from '../supabaseClient';
 const API_TIMEOUT_MS = 10000;
 
 export default function AgentDashboard({ activeTab }) {
@@ -63,11 +63,17 @@ export default function AgentDashboard({ activeTab }) {
     const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
     try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session?.access_token) {
+        throw new Error('You must be logged in to sync data.');
+      }
       const response = await fetch('http://192.168.0.71:8000/refresh', {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
-          'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
         },
         signal: controller.signal,
       });

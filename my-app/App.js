@@ -1,90 +1,67 @@
-import React, { useState } from 'react';
-import AgentDashboard from './screens/dashboard';
-import AssignmentCard from './components/assignmentcards';
-
-import Footer from './components/footer';
-import { StyleSheet, View } from 'react-native';
-
-
-
-export default function App() {
-    const [activeTab, setActiveTab] = useState('assignments');
-
-    return (<View style={styles.container}>
-        <AgentDashboard activeTab={activeTab} />
-        <Footer activeTab={activeTab} setActiveTab={setActiveTab} />
-        </View>
-    );
-}
-
-const styles = StyleSheet.create({
-  container: {
-        flex: 1,
-        backgroundColor: '#030303', 
-  },
-});
-
-/*
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Button, ActivityIndicator } from 'react-native';
-import { supabase } from './lib/supabase';
-import GoogleSignInButton from './components/GoogleSignInButton';
+import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
+import { supabase } from './supabaseClient';
+import AgentDashboard from './screens/dashboard';
+import Footer from './components/footer';
+import { GoogleSignInButton } from './components/signInWithGoogle';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
+const webclientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID; 
+
+GoogleSignin.configure({
+    webClientId: webclientId,
+    scopes: [
+        "https://www.googleapis.com/auth/classroom.courses.readonly",
+        "https://www.googleapis.com/auth/classroom.student-submissions.me.readonly",
+    ],
+    offlineAccess: true,
+    forceCodeForRefreshToken: true,
+  });
 export default function App() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('assignments');
 
   useEffect(() => {
-    // 1. Fetch current session on app startup
+    // 1) Check initial auth session on app boot
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
     });
 
-    // 2. Listen for auth state changes (SIGN_IN, SIGN_OUT, TOKEN_REFRESHED)
+    // 2) Listen for real-time sign in/out state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleSignOut = async () => {
-    try {
-      setLoading(true);
-      // Sign out from Google Native SDK and Supabase
-      await GoogleSignin.signOut();
-      await supabase.auth.signOut();
-    } catch (error) {
-      console.error('Sign out error:', error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Show a loading spinner while checking local secure storage for an active session
   if (loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0000ff" />
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#4285F4" />
       </View>
     );
   }
 
+  // GATEKEEPER: If no user session exists, show the Login Screen
+  if (!session) {
+    return (
+      <View style={styles.loginContainer}>
+        <Text style={styles.title}>GC Agent</Text>
+        <Text style={styles.subtitle}>Sign in to manage your Google Classroom & Drive workflow</Text>
+        <GoogleSignInButton />
+      </View>
+    );
+  }
+
+  // MAIN APP: If logged in, show your dashboard and tabs
   return (
     <View style={styles.container}>
-      {session && session.user ? (
-        <View style={styles.profileContainer}>
-          <Text style={styles.welcomeText}>Welcome, {session.user.email}!</Text>
-          <Button title="Sign Out" onPress={handleSignOut} color="#d9534f" />
-        </View>
-      ) : (
-        <View style={styles.loginContainer}>
-          <Text style={styles.titleText}>Welcome Back</Text>
-          <GoogleSignInButton />
-        </View>
-      )}
+      <AgentDashboard activeTab={activeTab} />
+      <Footer activeTab={activeTab} setActiveTab={setActiveTab} />
     </View>
   );
 }
@@ -92,27 +69,31 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
+    backgroundColor: '#030303',
   },
-  profileContainer: {
+  centered: {
+    flex: 1,
+    backgroundColor: '#030303',
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 15,
   },
   loginContainer: {
+    flex: 1,
+    backgroundColor: '#030303',
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 15,
+    padding: 24,
   },
-  welcomeText: {
-    fontSize: 18,
+  title: {
+    fontSize: 28,
     fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 8,
   },
-  titleText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
+  subtitle: {
+    fontSize: 14,
+    color: '#888888',
+    textAlign: 'center',
+    marginBottom: 32,
   },
 });
-*/
