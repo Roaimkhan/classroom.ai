@@ -74,7 +74,14 @@ def complete_task(state: State) -> dict[str, ExtractedTask]:
     completed_task = model.invoke(task_extraction_message)
     print(completed_task)
     return {"completed_task":completed_task.content} 
-      
+
+def package_task(state: State):
+    format = state.upload_format
+    
+
+    
+
+
 builder = StateGraph(State)
 builder.add_node("extractor", extract_task)
 builder.add_node("completion", complete_task)

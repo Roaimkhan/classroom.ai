@@ -1,6 +1,6 @@
 from gc_agent.database.database_ops import getAssgnFrmDbThruId
 from gc_agent.fetcher.fetcher_factory import fetcher
-from gc_agent.agent.utils import pdf_bytes_to_text
+from gc_agent.agent.utils import extract_pdf_content
 from gc_agent.agent.agent import agent
 import asyncio
 
@@ -26,7 +26,7 @@ async def AssignmentDispatcher(id:str):
     # PARSE THEM FOR THE AGENT
     
 
-    parsed_files:list[str] = [pdf_bytes_to_text(file) for file in  downloaded_files]
+    parsed_files:list[str] = [extract_pdf_content(file) for file in  downloaded_files]
     print(f"""
             FILES IN TEXT :{parsed_files[0]}
         """)
