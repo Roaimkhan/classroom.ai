@@ -1,0 +1,33 @@
+{
+  "version": "5",
+  "specifiers": {
+    "jsr:@deno/installer-shell-setup@*": "0.3.4"
+  },
+  "jsr": {
+    "@deno/installer-shell-setup@0.3.4": {
+      "integrity": "48665d1a737d487cce6874bc97bba70a5aeffa7053aca3f60df93c6fab8963b4"
+    }
+  },
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:@react-native-async-storage/async-storage@2.2.0",
+        "npm:@react-native-community/blur@^4.4.1",
+        "npm:@react-native-google-signin/google-signin@^16.1.4",
+        "npm:@supabase/supabase-js@^2.112.2",
+        "npm:expo-auth-session@~7.0.11",
+        "npm:expo-blur@~15.0.8",
+        "npm:expo-status-bar@~3.0.9",
+        "npm:expo-web-browser@~15.0.11",
+        "npm:expo@~54.0.35",
+        "npm:react-dom@19.1.0",
+        "npm:react-native-reanimated@~4.1.1",
+        "npm:react-native-safe-area-context@^5.9.1",
+        "npm:react-native-svg@15.12.1",
+        "npm:react-native-web@0.21",
+        "npm:react-native@0.81.5",
+        "npm:react@19.1.0"
+      ]
+    }
+  }
+}
