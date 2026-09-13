@@ -10,6 +10,9 @@ class CTime():
         
     @staticmethod
     def format_time(dueDate:dict,dueTime:dict)-> datetime:
+        if not due_date_dict or not isinstance(due_date_dict, dict):
+            return None
+
         day = str(dueDate.get("day",0))
         month = str(dueDate.get("month",0))
         year = str(dueDate.get("year",0))

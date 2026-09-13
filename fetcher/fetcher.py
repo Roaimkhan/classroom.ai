@@ -96,14 +96,14 @@ class gc_fetcher:
         # database write service during application startup.
         from gc_agent.database.database_ops import getCourseNameFrmDb
 
-        courseId = single_assgnmt.get("courseId")
-        coursename = await getCourseNameFrmDb(courseId)
+        course_id = single_assgnmt.get("courseId")
+        coursename = await getCourseNameFrmDb(course_id)
         print(f"===================================={coursename}=============================================================================")
         if not dueDate:
             assgnmnt_list.append(Assignment(
                             id=single_assgnmt.get("id"),
                             title=single_assgnmt.get("title"),
-                            courseId=courseId,
+                            course_id=course_id,
                             coursename=coursename,
                             description=single_assgnmt.get("description"),
                             driveId=single_assgnmt.get("driveId", {}),
@@ -114,7 +114,7 @@ class gc_fetcher:
             assgnmnt_list.append(Assignment(
                             id=single_assgnmt.get("id"),
                             title=single_assgnmt.get("title"),
-                            courseId=courseId,
+                            course_id=course_id,
                             coursename=coursename,
                             description=single_assgnmt.get("description"),
                             driveId=single_assgnmt.get("driveId", {}),

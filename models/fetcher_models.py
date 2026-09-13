@@ -20,7 +20,7 @@ class Course(BaseModel):
 class Assignment(BaseModel):
     id: str
     title: str
-    courseId: str
+    course_id: str
     coursename:str
     description: str | None = None
     dueDate: datetime | None = None
