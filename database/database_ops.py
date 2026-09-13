@@ -1,4 +1,4 @@
-from gc_agent.database.database_models import CourseDB, AssignmentDB, AsyncSessionLocal
+from gc_agent.database.database_models import UserCourses, CourseDB, AssignmentDB, AsyncSessionLocal
 from gc_agent.models.fetcher_models import ALLassignments, ALLcourses
 from sqlalchemy import select, func
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -35,7 +35,7 @@ async def _writeAssgntodb(assignment:ALLassignments)->None:
                 stmt = pg_insert(AssignmentDB).values(payload)
                 update_dict = {
                     "title": stmt.excluded.title,
-                    "courseId":stmt.excluded.courseId,
+                    "course_id":stmt.excluded.course_id,
                     "coursename": stmt.excluded.coursename,
                     "description": stmt.excluded.description,
                     "materials": stmt.excluded.materials,
@@ -64,9 +64,14 @@ async def _writeCoursestodb(courses:ALLcourses)->None:
 # QUERING DATA FROM DATABASE
 
 
-async def getPendingAssgnFrmDb():
+async def getUserPendingAssgnFrmDb(userid:str):
     async with AsyncSessionLocal() as db:
-        stmt = select(AssignmentDB).where(AssignmentDB.due_date_status == "Pending")
+        stmt = (
+            select(AssignmentDB)
+            .join(UserCourses , UserCourses.course_id == AssignmentDB.course_id)
+            .where(AssignmentDB.due_date_status == "Pending",
+                   UserCourses.user_id == userid)
+        )
         result_scalars = await db.scalars(stmt)
         results = result_scalars.all()
         return results
@@ -88,9 +93,13 @@ async def getCourseNameFrmDb(courseid:str):
         stmt = select(CourseDB.name).where(CourseDB.id == courseid)
         return await db.scalar(stmt)
 
-async def getCoursesFrmDb():
+async def getUserCoursesFrmDb(userid:str):
     async with AsyncSessionLocal() as db:
-            stmt = select(CourseDB).where(CourseDB.course_state == "ACTIVE")
+            stmt = (
+                select(CourseDB)
+                .join(UserCourses, CourseDB.id == UserCourses.course_id)
+                .where(UserCourses.user_id == userid)
+            )
             res =  await db.scalars(stmt)
             return res.all()
 
