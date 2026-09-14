@@ -7,27 +7,43 @@ class CTime():
     @staticmethod
     def current_time():
         return datetime.now()
-        
+
     @staticmethod
-    def format_time(dueDate:dict,dueTime:dict)-> datetime:
+    def format_time(due_date_dict=None, due_time_dict=None):
+        """
+        Safely parses  Google Classroom due date and time dictionaries into a datetime object.
+        Returns None if fields are missing or if the date values are invalid.
+        """
         if not due_date_dict or not isinstance(due_date_dict, dict):
             return None
-
-        day = str(dueDate.get("day",0))
-        month = str(dueDate.get("month",0))
-        year = str(dueDate.get("year",0))
-        hours = str(dueTime.get("hours",0))
-        minutes = str(dueTime.get("minutes",0))
-        format = "%d%m%Y%H%M"
-
-        if len(month)<2:
-            tmp_month = month
-            month="0"
-            month+=tmp_month
+            
+        year = due_date_dict.get("year")
+        month = due_date_dict.get("month")
+        day = due_date_dict.get("day")
         
-        date_string = datetime.strptime(f"{day}{month}{year}{hours}{minutes}",format)
+        # If any core date part is missing, there's no valid deadline
+        if not year or not month or not day:
+            return None
 
-        return date_string
+        # Default to midnight if dueTime is missing or empty
+        hours = 0
+        minutes = 0
+        if due_time_dict and isinstance(due_time_dict, dict):
+            hours = due_time_dict.get("hours", 0) or 0
+            minutes = due_time_dict.get("minutes", 0) or 0
+
+        try:
+            # Construct datetime safely using integers to avoid string-gluing bugs
+            return datetime(
+                year=int(year), 
+                month=int(month), 
+                day=int(day), 
+                hour=int(hours), 
+                minute=int(minutes)
+            )
+        except ValueError as e:
+            # Gracefully handle any unexpected calendar discrepancies
+            return None
 
 
 

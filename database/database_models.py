@@ -5,9 +5,11 @@ from datetime import datetime
 from typing import Optional, Literal
 from dotenv import load_dotenv
 from sqlalchemy import String, DateTime, Text  # SQLAlchemy database types
+import os 
 load_dotenv()
 
-engine = create_async_engine("postgresql+asyncpg://postgres:mysecretpassword@localhost:5432/classroom.ai",echo=True)
+DATABASE_URL = os.getenv("DATABASE_URL")
+engine = create_async_engine(DATABASE_URL,echo=True)
 
 
 class Base(DeclarativeBase):

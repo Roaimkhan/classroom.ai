@@ -4,7 +4,7 @@ import AssignmentView from '../components/AssignmentScroll';
 import CourseView from '../components/courseview';
 import AssignmentDetailModal from '../components/AssignmentView'; // Import detail view modal
 import { supabase } from '../supabaseClient';
-const API_TIMEOUT_MS = 10000;
+const API_TIMEOUT_MS = 20000;
 
 export default function AgentDashboard({ activeTab }) {
   const [assignments, setAssignments] = useState([]);

@@ -20,8 +20,31 @@ async def updateCoursesDb():
     from gc_agent.fetcher.fetcher_factory import build_fetcher
     fetcher = build_fetcher()
     all_courses = await fetcher.update_courses()
-    await _writeCoursestodb(all_courses)
+    await _writeCoursestoCourseDB(all_courses)
 
+async def updateUserCourses(userid:str):
+    from gc_agent.fetcher.fetcher_factory import build_fetcher
+    fetcher = build_fetcher()
+    all_courses = await fetcher.update_courses()
+    # `update_courses()` returns an ALLcourses model; access its `.courses` list
+    course_ids = [c.id for c in all_courses.courses]
+    await _writetoUserCourses(userid,course_ids)
+
+async def _writetoUserCourses(userid:str,courseids:list[str]):
+    try:
+        payload = [{"user_id":userid,"course_id":cid} for cid in courseids]
+        if not payload:
+            return
+
+        async with AsyncSessionLocal() as db:
+                async with db.begin():
+                    stmt = pg_insert(UserCourses).values(payload)
+                    stmt = stmt.on_conflict_do_nothing(index_elements=["user_id", "course_id"])
+                    await db.execute(stmt)
+
+    except Exception as e:
+        raise RuntimeError(f"Couldn't write usercourses to database at item {e}")
+    
 
 async def _writeAssgntodb(assignment:ALLassignments)->None:
     try:
@@ -48,7 +71,7 @@ async def _writeAssgntodb(assignment:ALLassignments)->None:
     except Exception as e:
         raise RuntimeError(f"Couldn't write assignments to database at item {e}")
     
-async def _writeCoursestodb(courses:ALLcourses)->None:
+async def _writeCoursestoCourseDB(courses:ALLcourses)->None:
     try:
         payload = [course.model_dump() for course in courses.courses]
         async with AsyncSessionLocal() as db:

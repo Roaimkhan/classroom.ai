@@ -2,7 +2,7 @@ from gc_agent.dir import DATA_DIR
 from gc_agent.agent.AssignmentDispatcher import AssignmentDispatcher
 from gc_agent.fetcher.fetcher_factory import build_fetcher
 from gc_agent.database.database_models import engine, init_db
-from gc_agent.database.database_ops import updateAssgnDb, getPendingAssgnCountFrmDb, _writeAssgntodb, getUserPendingAssgnFrmDb, updateCoursesDb, getUserCoursesFrmDb, getAssgnFrmDbThruId
+from gc_agent.database.database_ops import updateAssgnDb, getPendingAssgnCountFrmDb, _writeAssgntodb, getUserPendingAssgnFrmDb, updateCoursesDb, updateUserCourses, getUserCoursesFrmDb, getAssgnFrmDbThruId
 import asyncio
 import json
 import jwt
@@ -85,6 +85,7 @@ async def fetchPendingAssignments():
 
 @app.get("/refresh")
 async def refresh(user_id: str = Depends(verify_supabase_token)):
+    await updateUserCourses(user_id)
     await updateCoursesDb()
     courses = await getUserCoursesFrmDb(user_id)
     await updateAssgnDb()
