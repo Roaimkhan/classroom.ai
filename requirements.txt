@@ -2,7 +2,7 @@ langgraph
 PyMuPDF
 langchain_google_genai
 pytesseract
-PIL
+Pillow
 
 google-api-python-client
 google-auth-httplib2
@@ -13,6 +13,8 @@ requests
 fastapi
 uvicorn
 PyJWT
+redis
+rq
 
 sqlalchemy
 psycopg2-binary

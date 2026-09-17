@@ -10,6 +10,8 @@ from pprint import pprint
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, Security  # Ensure Security is here!
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from redis import Redis
+from rq import Queue
 path = DATA_DIR / "registered_courses.json"
 import os
 from dotenv import load_dotenv
@@ -85,20 +87,36 @@ async def fetchPendingAssignments():
 
 @app.get("/refresh")
 async def refresh(user_id: str = Depends(verify_supabase_token)):
-    await updateUserCourses(user_id)
     await updateCoursesDb()
+    await updateUserCourses(user_id)
     courses = await getUserCoursesFrmDb(user_id)
     await updateAssgnDb()
     assgn = await getUserPendingAssgnFrmDb(user_id)
     return {"all_pending_assgn": assgn,"registered_courses":courses}
 
+# The completeAssignment endpoint creates a job record 
+# in the database and dispatches the assignment to the 
+# Redis/RQ queue, then immediately returns a job_id to 
+# the frontend. A background worker picks up the job and 
+# processes the assignment asynchronously, updating its 
+# status in the database (queued → processing → completed/failed).
+# The frontend uses the GET /jobs/{job_id} status endpoint to 
+# check the job's progress and display the current state to the user.
 
+redis_conn = Redis(host="localhost", port=6379)
+task_queue = Queue("task_queue", connection = redis_conn)
 
 @app.post("/assignments/{assignment_id}/complete")
 async def completeAssignment(assignment_id:str):
-    assgn = await AssignmentDispatcher(assignment_id)
-    # assgn = await getAssgnFrmDbThruId(assignment_id)
-    return {"assignment":assgn}
+    updateAssignmentStatus("queuInProgresse",assignment_id)
+    job = task_queue.enqueue(AssignmentDispatcher, assignment_id)
+    return {
+        "status":"queued",
+        "job":job.id,
+        "message": f"Assignment {assignment_id} sent to background queue!",
+    }
+
+async def checkAssignmentStatus():
 
 if __name__ == "__main__":
     fetcher = build_fetcher()

@@ -110,7 +110,6 @@ async def getPendingAssgnCountFrmDb():
         stmt = select(func.count(AssignmentDB.id)).where(AssignmentDB.due_date_status == "Pending")
         return await db.scalar(stmt) or 0
 
-
 async def getCourseNameFrmDb(courseid:str):
     async with AsyncSessionLocal() as db:
         stmt = select(CourseDB.name).where(CourseDB.id == courseid)
@@ -132,7 +131,16 @@ async def getCourselist():
         res = await db.scalars(stmt)
         return res.all()
 
-    
+# UPDATING DATABASE
+def updateAssignmentStatus(status:str, agnmnt_id:str):
+    async with AsyncSessionLocal() as db:
+        async with db.begin():
+            await db.execute(
+            update(AssignmentDB)
+            .where(AssignmentDB.id == agnmnt_id)
+            .values(completion_status=status)
+        )
+
 if __name__ == "__main__":
     import asyncio
     asyncio.run(getCourselist())

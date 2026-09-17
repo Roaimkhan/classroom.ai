@@ -9,7 +9,12 @@ import os
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-engine = create_async_engine(DATABASE_URL,echo=True)
+if not DATABASE_URL:
+    raise RuntimeError(
+        "DATABASE_URL is not configured. Create a .env file in the project root with DATABASE_URL=..."
+    )
+
+engine = create_async_engine(DATABASE_URL, echo=True)
 
 
 class Base(DeclarativeBase):
@@ -23,8 +28,6 @@ from typing import Optional, Literal
 from datetime import datetime
 from sqlalchemy import String, Text, DateTime, JSON, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship, declarative_base
-
-Base = declarative_base()
 
 class CourseDB(Base):
     __tablename__ = "courses"
@@ -62,7 +65,7 @@ class AssignmentDB(Base):
     materials: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
     dueDate: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     due_date_status: Mapped[Literal["Pending", "Due", "WithoutDueDate"]] = mapped_column(String(50))
-
+    completion_status: Mapped[Literal["NotStarted", "InProgress", "Completed", "Failed"]] = mapped_column(String(50))
     # Relationship back to CourseDB
     course: Mapped["CourseDB"] = relationship("CourseDB", back_populates="assignments")
 

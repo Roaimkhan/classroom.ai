@@ -32,13 +32,9 @@ async def AssignmentDispatcher(id:str):
         """)
 
     # PASS IT TO THE AGENT
-    title = ""
-    if assignment.title:
-        title = assignment.title
-
-    description = ""
-    if assignment.description:
-        description = assignment.description
+    
+    title = assignment.title if assignment.title else ""
+    description = assignment.description if assignment.description else ""
     
     assignment = {
         "id": id,
@@ -47,8 +43,9 @@ async def AssignmentDispatcher(id:str):
         "pdf_text":parsed_files
     }
 
-    result = agent.invoke(assignment)
-    return result.completed_task
+    result = agent.invoke(assignment) 
+    res = result["completed_task"]
+    print(res)
 
 
 if __name__ == "__main__":
