@@ -1,6 +1,6 @@
 langgraph
 PyMuPDF
-langchain_google_genai
+ChatXAI
 pytesseract
 Pillow
 
