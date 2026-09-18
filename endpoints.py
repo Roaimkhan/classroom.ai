@@ -2,7 +2,7 @@ from gc_agent.dir import DATA_DIR
 from gc_agent.agent.AssignmentDispatcher import AssignmentDispatcher
 from gc_agent.fetcher.fetcher_factory import build_fetcher
 from gc_agent.database.database_models import engine, init_db
-from gc_agent.database.database_ops import updateAssgnDb, getPendingAssgnCountFrmDb, _writeAssgntodb, getUserPendingAssgnFrmDb, updateCoursesDb, updateUserCourses, getUserCoursesFrmDb, getAssgnFrmDbThruId
+from gc_agent.database.database_ops import updateAssgnDb, getPendingAssgnCountFrmDb, _writeAssgntodb, getUserPendingAssgnFrmDb, updateCoursesDb, updateUserCourses, getUserCoursesFrmDb, getAssgnFrmDbThruId, checkAssignmentStatus
 import asyncio
 import json
 import jwt
@@ -108,15 +108,23 @@ task_queue = Queue("task_queue", connection = redis_conn)
 
 @app.post("/assignments/{assignment_id}/complete")
 async def completeAssignment(assignment_id:str):
-    updateAssignmentStatus("queuInProgresse",assignment_id)
+    # incase assignment is completed by some other user
+    # we show the user a slightly modified copy of the
+    # already completed assignment rather than recreating it from scratch 
+    updateAssignmentStatus("InProgresse",assignment_id)
     job = task_queue.enqueue(AssignmentDispatcher, assignment_id)
     return {
-        "status":"queued",
+        "completion_status":"InProgresse",
         "job":job.id,
         "message": f"Assignment {assignment_id} sent to background queue!",
     }
 
-async def checkAssignmentStatus():
+async def poolAssignmentStatus(assignment_id:str):
+    status = checkAssignmentStatus(assignment_id)
+    return {
+        "completion_status":status,
+    }
+
 
 if __name__ == "__main__":
     fetcher = build_fetcher()
