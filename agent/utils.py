@@ -1,5 +1,8 @@
-import fitz
 from pprint import pprint
+import io
+import pymupdf  # Replaces deprecated fitz
+import pytesseract
+from PIL import Image
 
 def extract_text_blocks_positions(pdf_bytes):
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
@@ -8,17 +11,6 @@ def extract_text_blocks_positions(pdf_bytes):
         text.append(page.get_text("blocks"))
 
     return text
-
-
-import io
-from PIL import Image
-import pymupdf as fitz  # Replaced 'import fitz' to fix the deprecation warning
-import pytesseract
-
-import io
-import pymupdf  # Replaces deprecated fitz
-import pytesseract
-from PIL import Image
 
 
 def extract_pdf_content(pdf_input: str | bytes) -> list[dict]:
