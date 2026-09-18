@@ -65,7 +65,7 @@ class AssignmentDB(Base):
     materials: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
     dueDate: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     due_date_status: Mapped[Literal["Pending", "Due", "WithoutDueDate"]] = mapped_column(String(50))
-    completion_status: Mapped[Literal["NotStarted", "InProgress", "Completed", "Failed"]] = mapped_column(String(50))
+    completion_status: Mapped[Literal["NotStarted", "InProgress", "Completed", "Failed"]] = mapped_column(String(50), nullable=True)
     # Relationship back to CourseDB
     course: Mapped["CourseDB"] = relationship("CourseDB", back_populates="assignments")
 
