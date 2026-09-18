@@ -7,8 +7,6 @@ def get_current_user():
     ...
 
 # WRITING DATA TO DATABASE
-
-
 async def updateAssgnDb()->None:
     from gc_agent.fetcher.fetcher_factory import build_fetcher
     fetcher = build_fetcher()
@@ -85,8 +83,6 @@ async def _writeCoursestoCourseDB(courses:ALLcourses)->None:
 
 
 # QUERING DATA FROM DATABASE
-
-
 async def getUserPendingAssgnFrmDb(userid:str):
     async with AsyncSessionLocal() as db:
         stmt = (
@@ -132,7 +128,7 @@ async def getCourselist():
         return res.all()
 
 # UPDATING DATABASE
-def updateAssignmentStatus(status:str, agnmnt_id:str):
+async def updateAssignmentStatus(status:str, agnmnt_id:str):
     async with AsyncSessionLocal() as db:
         async with db.begin():
             await db.execute(
@@ -141,6 +137,17 @@ def updateAssignmentStatus(status:str, agnmnt_id:str):
             .values(completion_status=status)
         )
 
+
+# CHECKING DATABASE
+async def checkAssignmentStatus(agnmnt_id:str):
+    async with AsyncSessionLocal() as db:
+        stmt = (
+                select(AssignmentDB.completion_status)
+                .where(AssignmentDB.id == agnmnt_id)
+            )
+        res =  await db.execute(stmt)
+        return res.scalar_one_or_none()
+        
 if __name__ == "__main__":
     import asyncio
-    asyncio.run(getCourselist())
+    asyncio.run(updateAssgnDb())
