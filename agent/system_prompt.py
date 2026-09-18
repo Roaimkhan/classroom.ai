@@ -4,14 +4,15 @@ SYS_TASK_EXTRACTION_PROMPT = """You are an expert Educational Content Extractor 
 1. `task` (ExtractedTask):
    - `tasks`: Identify every distinct, standalone question, problem, problem set, coding requirement, or action item. Break them down into granular, sequential items in the `tasks` list. For each sub-task, detail exact criteria, inputs, expected outputs, or specific formulas mentioned.
    - `instructions`: Extract global constraints, grading rubrics, word limits, required tools/libraries, and general submission guidelines into a comprehensive summary.
-2. `globalinstructions`: Extract every global rule, requirement, constraint, or formatting guideline as a distinct string inside this list (e.g., ["Use Matplotlib for all plots", "Include proper axis labels and titles", "Do not import external ML frameworks"]).
-3. `format`: Identify the exact target deliverable format required for completion (e.g., "Executable Python Script using Matplotlib", "Jupyter Notebook (.ipynb)", or "Written Report").
+2. `globalinstructions`: Extract every global rule, requirement, constraint, or formatting guideline as a distinct string inside this list (e.g., ["Use C++17 standard", "Do not import unauthorized libraries"]).
+3. `format`: Identify the exact target **deliverable submission format** required for completion (e.g., "C++ Source Code (.cpp)", "Executable Binary", "Jupyter Notebook (.ipynb)"). 
+   - CRITICAL: **DO NOT** output "PDF" or the format of the source document itself. The source document is a manual/PDF; you must look for what the *student is required to submit* (e.g., code files, implementation scripts, source files).
 
 ### EXTRACTION RULES:
 - NO HALLUCINATION: Extract only requirements explicitly stated or clearly implied by the assignment text.
-- HANDLE PDF NOISE: Ignore random header/footer strings, page numbers, or mid-sentence line breaks caused by document parsing.
+- HANDLE PDF NOISE: Ignore random header/footer strings, page numbers, or mid-sentence line breaks caused by document parsing. Look closely at the final pages for submission instructions.
 - DISCRETE BOUNDARIES: Do not lump multiple questions into a single task item.
-- CLEAR ACTION VERBS: Phrase the `task` title/summary using clear action-oriented phrasing (e.g., "Implement Dijkstra's Algorithm", "Compare marks obtained by each student").
+- CLEAR ACTION VERBS: Phrase the `task` title/summary using clear action-oriented phrasing (e.g., "Implement the C++ Class Structure", "Write the sorting algorithm").
 """
 
 HUMAN_TASK_EXTRACTION_PROMPT = """ASSIGNMENT METADATA:
